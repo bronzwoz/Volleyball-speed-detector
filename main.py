@@ -6,10 +6,16 @@ Create video player, timeline, keyboard controls, mouse input, and display video
 import cv2
 from video_player import VideoPlayer
 from timeline import Timeline
+from mouse_tracker import MouseTracker
+from ball_tracker import BallTracker
 
 player = VideoPlayer("videos/test.mp4")
 
 timeline = Timeline(player)
+
+mouse_tracker = MouseTracker()
+
+ball_tracker = BallTracker()
 
 playing = False
 
@@ -18,6 +24,10 @@ playing = False
 def mouse_callback(event, x, y, flags, param):
 
     timeline.handle_mouse(event, x, y)
+
+    mouse_tracker.handle_mouse(event, x, y, flags, param)
+
+    ball_tracker.handled_mouse(event, x, y, flags, param)
 
 #creates window, names it
 window_name = "volleyball Speed Detector"
@@ -39,13 +49,14 @@ while True:
 
     #Draw the timeline
     timeline.draw(frame)
+    mouse_tracker.draw(frame)
+    ball_tracker.draw(frame)
 
-    #Displays current frame being displayed
+    #Displays current being viewed
     cv2.putText(frame, f"Frame: {player.current_frame + 1}/{player.total_frames}", (20, 40), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1, (0, 255, 0), 2)
-
+    
+    #Is the video playing or paused and displays it.
     status = "playing" if playing else "paused"
-
-    #Displays 
     cv2.putText(frame, status, (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
 
     #Show the video
