@@ -1,10 +1,11 @@
-#imports OpenCV
-import cv2
+"""
+Create video player, timeline, keyboard controls, mouse input, and display video window
+"""
 
-#imports class
+#import libraries
+import cv2
 from video_player import VideoPlayer
 from timeline import Timeline
-
 
 player = VideoPlayer("videos/test.mp4")
 
@@ -18,14 +19,18 @@ def mouse_callback(event, x, y, flags, param):
 
     timeline.handle_mouse(event, x, y)
 
-#Avoids repeatoing the window name and ensures callback is attached to correct window
+#creates window, names it
 window_name = "volleyball Speed Detector"
 cv2.namedWindow(window_name)
+
+#tells OpenCV which function should recieve mouse events
 cv2.setMouseCallback(window_name, mouse_callback)
 
-# --====================--
-#           Main
-# --====================--
+
+# --=========================--
+#             Main
+# --=========================--
+
 
 while True:
     
@@ -43,13 +48,13 @@ while True:
     #Displays 
     cv2.putText(frame, status, (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
 
-    #Title on the window
+    #Show the video
     cv2.imshow(window_name, frame)
 
     #Wait up to 30ms for a keypress (uses 'Ex' to read extended key strokes like arrow keys)
     key = cv2.waitKeyEx(30)
 
-    # ESC = Quit
+    # ESC = Quit 
     if key == 27:
         break
 
@@ -77,7 +82,7 @@ while True:
     elif key == ord("r"):
         player.restart()
 
-    #Continues playing the video
+    #Continues playing the video if playback is on
     elif playing:
         player.next_frame()
 
