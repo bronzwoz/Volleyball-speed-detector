@@ -76,10 +76,12 @@ while True:
     # Right Arrow = Next frame
     elif key == 63235:
         player.next_frame()
+        ball_tracker.record_positon()
 
     # Left Arrow = Back one frame
     elif key == 63234:
         player.previous_frame()
+        ball_tracker.record_positon()
 
     # Up Arrow = forwards ten frame
     elif key == 63232:
