@@ -27,7 +27,7 @@ def mouse_callback(event, x, y, flags, param):
 
     mouse_tracker.handle_mouse(event, x, y, flags, param)
 
-    ball_tracker.handled_mouse(event, x, y, flags, param)
+    ball_tracker.handle_mouse(event, x, y, flags, param)
 
 #creates window, names it
 window_name = "volleyball Speed Detector"
@@ -46,8 +46,11 @@ while True:
     
     #Creates a temp copy of the frame for display
     frame = player.get_frame().copy()
+    
+    #update ball position
+    ball_tracker.update_tracking(frame)
 
-    #Draw the timeline
+    #Draw the timeline, mouse tracker, and ball tracker
     timeline.draw(frame)
     mouse_tracker.draw(frame)
     ball_tracker.draw(frame)
@@ -74,21 +77,21 @@ while True:
         playing = not playing
 
     # Right Arrow = Next frame
-    elif key == 63235:
+    elif key == 2555904: #63235
         player.next_frame()
-        ball_tracker.record_positon()
+        ball_tracker.record_position()
 
     # Left Arrow = Back one frame
-    elif key == 63234:
+    elif key == 2424832: #63234
         player.previous_frame()
-        ball_tracker.record_positon()
+        ball_tracker.record_position()
 
     # Up Arrow = forwards ten frame
-    elif key == 63232:
+    elif key == 2490368: #63232
         player.jump_forward(10)
 
     # Down Arrow = backwards ten frame
-    elif key == 63233:
+    elif key == 2621440: #63233
         player.jump_backward(10)
 
     # r = Restart video

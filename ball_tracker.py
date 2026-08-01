@@ -12,11 +12,12 @@ class BallTracker:
         self.positions = []
 
     def detect_ball(self, frame):
-
+        print("detect_ball called")
+        #Detect ball in current frame based on last known position
         region = self.get_region(frame)
-        if region is None:
+        if region is None or region.size == 0:
             return None
-        
+
         #convert to gray scale
         gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
 
@@ -31,18 +32,39 @@ class BallTracker:
         if len(contours) == 0:
             return None
         
-        #find largest bright object
-        largest = max(contours, key=cv2.contourArea)
-        area = cv2.contourArea(largest)
-        if area < 5:
+        best_direction = None
+        best_area = 0
+
+        #Check all contours to find the largest bright object within the specified aspect ratio
+        for contour in contours:
+            
+            area = cv2.contourArea(contour)
+            
+            if area < 40:
+                continue
+
+            x, y, w, h = cv2.boundingRect(contour)
+
+            aspect_ratio = w / float(h)
+
+            if aspect_ratio < 0.6 or aspect_ratio > 1.4:
+                continue
+
+            if area > best_area:
+                best_area = area
+                best_direction = contour
+
+        if best_direction is None:
             return None
+        
+        #find the center of the largest bright object
+        M = cv2.moments(best_direction)
 
-        #get center of object
-        M = cv2.moments(largest)
-
+        #If the area is zero, return None to avoid division by zero
         if M["m00"] == 0:
             return None
         
+        #convert region coordinates to frame coordinates
         x = int(M["m10"] / M["m00"])
         y = int(M["m01"] / M["m00"])
 
@@ -50,9 +72,27 @@ class BallTracker:
         x += self.ball_x - 50
         y += self.ball_y - 50
 
+        if self.ball_x is not None and self.ball_y is not None:
+
+            dx = x - self.ball_x
+            dy = y - self.ball_y
+
+            distance = (dx ** 2 + dy ** 2) ** 0.5
+
+            if distance > 40:
+                return None
+            
         return (x,y)
 
-    def handled_mouse(self, event, x, y, flags, param):
+    def update_tracking(self, frame):
+        #Detect the ball in the current frame and update its position
+        detected = self.detect_ball(frame)
+        if detected is not None:
+            self.ball_x, self.ball_y = detected
+            #Save the detected position to the list of positions
+            if len(self.positions) == 0 or self.positions[-1] != detected: self.positions.append(detected)
+
+    def handle_mouse(self, event, x, y, flags, param):
 
         #Left mouse button selects ball positon
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -64,7 +104,7 @@ class BallTracker:
 
             print(f"Ball positions recorded at: {x}, {y}")
 
-    def record_positon(self):
+    def record_position(self):
         if self.ball_x is not None and self.ball_y is not None:
 
             self.positions.append((self.ball_x, self.ball_y))
@@ -72,7 +112,7 @@ class BallTracker:
     #creates a 100x100 box around the last position of the ball
     def get_region(self, frame):
 
-        if self.ball_x is None:
+        if self.ball_x is None or self.ball_y is None:
             return None
         
         size = 50
@@ -82,6 +122,9 @@ class BallTracker:
 
         x2 = min(frame.shape[1], self.ball_x + size)
         y2 = min(frame.shape[0], self.ball_y + size)
+
+        if x2 <= x1 or y2 <= y1:
+            return None
 
         return frame[y1:y2, x1:x2]
 
