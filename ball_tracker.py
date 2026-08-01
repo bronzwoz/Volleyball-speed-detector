@@ -1,8 +1,12 @@
+from turtle import speed
+
 import cv2
 
 class BallTracker:
 
-    def __init__(self):
+    def __init__(self, player):
+
+        self.player = player
 
         #current selected ball position
         self.ball_x = None
@@ -10,9 +14,35 @@ class BallTracker:
 
         #Stores ball position for each frame
         self.positions = []
+        #Initial speed
+        self.speed_kph = 0.0
+        #Calibration estimate of how many pixels correspond to one meter in the video
+        self.pixels_per_meter = 105.0
+
+    def calculate_speed(self, fps):
+        #Calculates the speed of the ball based on the recorded positions and fps
+        if len(self.positions) < 2:
+            return 
+        
+        (x1, y1) = self.positions[-2]
+        (x2, y2) = self.positions[-1]
+
+        dx = x2 - x1
+        dy = y2 - y1
+
+        pixel_distance = (dx ** 2 + dy ** 2) ** 0.5
+    
+        #Speed in pixels per second
+        meters = pixel_distance / self.pixels_per_meter
+
+        dt = 1.0 / self.player.fps
+
+        speed_mps = meters / dt
+
+        self.speed_kph = speed_mps * 3.6
 
     def detect_ball(self, frame):
-        print("detect_ball called")
+        
         #Detect ball in current frame based on last known position
         region = self.get_region(frame)
         if region is None or region.size == 0:
@@ -91,6 +121,7 @@ class BallTracker:
             self.ball_x, self.ball_y = detected
             #Save the detected position to the list of positions
             if len(self.positions) == 0 or self.positions[-1] != detected: self.positions.append(detected)
+            self.calculate_speed(fps=self.player.fps)
 
     def handle_mouse(self, event, x, y, flags, param):
 
@@ -102,7 +133,7 @@ class BallTracker:
 
             self.positions.append((x, y))
 
-            print(f"Ball positions recorded at: {x}, {y}")
+            #print(f"Ball positions recorded at: {x}, {y}")
 
     def record_position(self):
         if self.ball_x is not None and self.ball_y is not None:
@@ -155,3 +186,7 @@ class BallTracker:
         #Display coordinates
         text = f"Ball: ({self.ball_x}, {self.ball_y})"
         cv2.putText(frame, text, (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
+        #Display speed in km/h
+        speed_text = f"Speed: {self.speed_kph:.1f} km/h"
+        cv2.putText(frame, speed_text, (20, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)

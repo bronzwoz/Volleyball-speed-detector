@@ -15,7 +15,7 @@ timeline = Timeline(player)
 
 mouse_tracker = MouseTracker()
 
-ball_tracker = BallTracker()
+ball_tracker = BallTracker(player)
 
 playing = False
 

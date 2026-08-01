@@ -10,6 +10,7 @@ class MouseTracker:
 
         #Is the mouse in the window
         self.active = False
+        self.points = []
 
     def handle_mouse(self, event, x, y, flags, param):
 
@@ -18,6 +19,10 @@ class MouseTracker:
             self.x = x
             self.y = y
             self.active = True
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            self.points.append((x, y))
+            print(self.points)
 
     def draw(self, frame):
 
@@ -31,7 +36,13 @@ class MouseTracker:
 
         #displays coordinates
         text = f"X: {self.x} Y: {self.y}"
-        cv2.putText(frame, text, (20, 120), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 0.8, (255, 255, 255), 2)          
+        cv2.putText(frame, text, (20, 120), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 0.8, (255, 255, 255), 2)
+
+        for point in self.points:
+            cv2.circle(frame, point, 5, (0, 255, 255), -1)
+
+        if len(self.points) == 2:
+            cv2.line(frame, self.points[0], self.points[1], (0, 255, 255), 2)
             
 
             
